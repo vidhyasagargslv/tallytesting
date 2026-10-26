@@ -1,0 +1,32 @@
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>TT StockItem Export</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+        <SVCURRENTCOMPANY>__COMPANY__</SVCURRENTCOMPANY>
+        
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="TT StockItem Export" ISMODIFY="No" ISFIXED="No" ISINITIALIZE="No" ISOPTION="No" ISINTERNAL="No">
+            <TYPE>StockItem</TYPE>
+            
+            <FETCH>GUID</FETCH>
+            <FETCH>Name</FETCH>
+            <FETCH>ClosingBalance</FETCH>
+            <FETCH>ClosingValue</FETCH>
+            <FETCH>ClosingRate</FETCH>
+            
+          </COLLECTION>
+          
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>

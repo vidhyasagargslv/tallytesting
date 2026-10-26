@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Tally Sync Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { font: 14px system-ui, sans-serif; margin: 0; color: #1f2933; background: #f5f7fa; }
+  header { background: #12355b; color: #fff; padding: 10px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; }
+  header .badge { background: #ffd166; color: #333; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  nav { display: flex; gap: 4px; padding: 8px 16px; background: #fff; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+  nav button { border: 1px solid #ccd; background: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  nav button.active { background: #12355b; color: #fff; }
+  main { padding: 16px; }
+  section { display: none; } section.active { display: block; }
+  .card { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+  label { display: flex; flex-direction: column; font-size: 12px; color: #555; gap: 2px; }
+  input, select { padding: 5px 6px; border: 1px solid #c8ccd0; border-radius: 4px; font: inherit; }
+  button.act { background: #1b998b; color: #fff; border: 0; padding: 7px 14px; border-radius: 6px; cursor: pointer; }
+  button.sec { background: #e9ecef; border: 0; padding: 7px 12px; border-radius: 6px; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { border-bottom: 1px solid #eee; padding: 4px 6px; text-align: left; vertical-align: top; }
+  th { background: #f0f2f5; position: sticky; top: 0; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pending { color: #b7791f; } .synced { color: #2f855a; } .failed { color: #c53030; font-weight: 600; }
+  pre { background: #0f172a; color: #e2e8f0; padding: 10px; border-radius: 6px; overflow: auto; max-height: 60vh; font-size: 12px; }
+  #log { white-space: pre-wrap; font-size: 12px; max-height: 220px; overflow: auto; background: #fbfbfb; border: 1px solid #eee; padding: 6px; }
+  .link { color: #1d4ed8; cursor: pointer; text-decoration: underline; }
+  dialog { width: 85vw; max-width: 1100px; border: 0; border-radius: 8px; }
+  .lines td input { width: 110px; }
+</style>
+</head>
+<body>
+<header><h1>Tally Sync Demo</h1><span id="cfg"></span></header>
+<nav id="tabs"></nav>
+<main>
+  <section id="dashboard">
+    <div class="card row">
+      <button class="sec" onclick="act('/api/test-connection')">Test connection</button>
+      <button class="sec" onclick="act('/api/demo/seed-masters')">Create demo masters (local)</button>
+      <button class="act" onclick="act('/api/push')">Push to Tally</button>
+      <button class="act" onclick="act('/api/pull')">Pull from Tally (incremental)</button>
+      <button class="sec" onclick="act('/api/pull', {full:true})">Full pull</button>
+      <button class="act" onclick="act('/api/sync')">Sync now (push + pull)</button>
+    </div>
+    <div class="card"><b>Status</b><div id="status"></div></div>
+    <div class="card"><b>Last action result</b><div id="log"></div></div>
+  </section>
+
+  <section id="create">
+    <div class="card">
+      <b>Create master</b>
+      <div class="row" style="margin-top:8px">
+        <label>Type<select id="mKind" onchange="renderMasterForm()">
+          <option value="ledger">Ledger</option><option value="stock_item">Stock item</option><option value="group">Group</option>
+          <option value="unit">Unit</option><option value="stock_group">Stock group</option><option value="godown">Godown</option></select></label>
+        <span id="mFields" class="row"></span>
+        <button class="act" onclick="saveMaster()">Save (queue for push)</button>
+      </div>
+    </div>
+    <div class="card">
+      <b>Create voucher</b>
+      <div class="row" style="margin-top:8px">
+        <label>Type<select id="vKind" onchange="renderVoucherForm()">
+          <option value="sales">Sales invoice</option><option value="sales_order">Sales order</option>
+          <option value="purchase">Purchase invoice</option><option value="purchase_order">Purchase order</option>
+          <option value="receipt">Receipt</option><option value="payment">Payment</option></select></label>
+        <label>Number (blank = auto)<input id="vNumber" /></label>
+        <label>Date (YYYYMMDD)<input id="vDate" /></label>
+        <label>Party ledger<input id="vParty" list="ledgerNames" /></label>
+        <span id="vExtra" class="row"></span>
+      </div>
+      <table class="lines" id="vLines" style="margin-top:8px"></table>
+      <div class="row" style="margin-top:8px"><button class="sec" id="addLine" onclick="addLine()">+ line</button><button class="act" onclick="saveVoucher()">Save (queue for push)</button></div>
+    </div>
+    <div class="card"><b>Created here</b><div id="localList"></div></div>
+  </section>
+
+  <section id="outbox"><div class="card"><button class="act" onclick="act('/api/push')">Push pending/failed</button><div id="outboxList"></div></div></section>
+
+  <section id="tally">
+    <div class="card row">
+      <label>Masters<select id="tType" onchange="loadTally()">
+        <option>ledger</option><option>group</option><option>stock_item</option><option>stock_group</option><option>unit</option>
+        <option>godown</option><option>voucher_type</option><option>company</option></select></label>
+    </div>
+    <div class="card" id="tallyMasters"></div>
+  </section>
+
+  <section id="vouchers">
+    <div class="card row"><label>Voucher type<select id="vtFilter" onchange="loadVouchers()"><option value="">(all)</option>
+      <option>Sales</option><option>Sales Order</option><option>Purchase</option><option>Purchase Order</option><option>Receipt</option><option>Payment</option></select></label></div>
+    <div class="card" id="voucherList"></div>
+  </section>
+
+  <section id="stock"><div class="card" id="stockList"></div></section>
+
+  <section id="schema">
+    <div class="card row">
+      <label>Object type<select id="sType" onchange="loadSchema()"></select></label>
+      <label>Search path<input id="sQ" oninput="loadSchema()" /></label>
+      <span id="sInfo"></span>
+    </div>
+    <div class="card" id="schemaList"></div>
+  </section>
+</main>
+<datalist id="ledgerNames"></datalist><datalist id="itemNames"></datalist><datalist id="godownNames"></datalist>
+<dialog id="dlg"><div style="display:flex;justify-content:space-between"><b id="dlgTitle"></b><button class="sec" onclick="dlg.close()">Close</button></div><div id="dlgBody"></div></dialog>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Export</TALLYREQUEST>
+    <TYPE>Collection</TYPE>
+    <ID>TT Godown Export</ID>
+  </HEADER>
+  <BODY>
+    <DESC>
+      <STATICVARIABLES>
+        <SVEXPORTFORMAT>$$SysName:XML</SVEXPORTFORMAT>
+        <SVCURRENTCOMPANY>__COMPANY__</SVCURRENTCOMPANY>
+        <SVFROMDATE TYPE="Date">__FROM__</SVFROMDATE><SVTODATE TYPE="Date">__TO__</SVTODATE>
+      </STATICVARIABLES>
+      <TDL>
+        <TDLMESSAGE>
+          <COLLECTION NAME="TT Godown Export" ISMODIFY="No" ISFIXED="No" ISINITIALIZE="No" ISOPTION="No" ISINTERNAL="No">
+            <TYPE>Godown</TYPE>
+            <NATIVEMETHOD>*</NATIVEMETHOD>
+            <FETCH>*</FETCH>
+            
+          </COLLECTION>
+          
+        </TDLMESSAGE>
+      </TDL>
+    </DESC>
+  </BODY>
+</ENVELOPE>

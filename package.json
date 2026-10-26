@@ -1,0 +1,32 @@
+{
+  "name": "tallytesting",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo: create data locally, push to TallyPrime (XML import) and pull everything back (XML export) with SQLite. Runs in mock mode without Tally.",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "tsx scripts/e2e.ts",
+    "mock-tally": "tsx scripts/mock-tally-server.ts",
+    "gen:windows-requests": "tsx scripts/gen-windows-requests.ts",
+    "reset": "tsx scripts/reset.ts"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "express": "^5.3.0",
+    "fast-xml-parser": "^4.5.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
